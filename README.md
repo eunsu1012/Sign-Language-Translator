@@ -1,86 +1,77 @@
 # 🤟 Sign Language Translator
 
-A computer vision-based project that translates sign language gestures into text.  
-This system aims to bridge the communication gap between deaf or hard-of-hearing individuals and non-signers.
+A computer vision project that recognizes American Sign Language (ASL) alphabet gestures from images and converts them into text and speech.  
+The model is served through a web app with real-time webcam input, deployed with Docker.
 
 
 ## 📌 Overview
 
-Sign language is a visual language that uses hand gestures, facial expressions, and body movements to convey meaning.  
-However, communication between sign language users and non-signers remains a major challenge.
+Communication between sign language users and non-signers remains a major challenge.
 
-This project focuses on building an AI-based **Sign Language Translator** that recognizes hand gestures and converts them into readable text.
-
-Sign language translation systems typically combine computer vision and machine learning to recognize gestures and convert them into language representations.  
+This project builds an end-to-end **ASL alphabet translator**: a fine-tuned MobileNetV2 model classifies hand gestures, and a Flask web app captures webcam frames, detects the hand with MediaPipe, and returns the predicted letter as text and audio.
 
 
 ## 🎯 Objectives
 
-- Recognize sign language gestures using computer vision  
-- Translate gestures into text for real-time communication  
-- Build an accessible AI system for inclusive communication  
-- Explore machine learning techniques for gesture recognition  
+- Classify ASL alphabet gestures from hand images  
+- Improve accuracy through transfer learning and fine-tuning  
+- Build a web interface that translates webcam input into text and speech  
+- Package the full application for reproducible deployment with Docker  
 
 
 ## 🧠 Key Features
 
-- Real-time hand gesture recognition  
-- Translation from sign language to text  
-- Computer vision-based feature extraction  
-- Application for accessibility and assistive technology  
+- **Transfer learning** with MobileNetV2, fine-tuning the last 50 layers  
+- **MediaPipe hand detection** to crop the region of interest before prediction  
+- **Web app** with live webcam input (Flask backend, HTML/JS frontend)  
+- **Text-to-speech** output using Google Text-to-Speech (gTTS)  
+- **Docker** containerization for deployment  
 
 
 ## 🗂️ Dataset
 
-The dataset consists of:
-
-- Hand gesture images or video frames  
-- Labeled sign language classes (e.g., alphabets, words)  
-
-Sign language datasets often include variations in hand shape, movement, and background, which makes the task challenging.
+- ASL alphabet hand gesture images  
+- Labeled by letter class, organized in folders and loaded with Keras `ImageDataGenerator`  
+- Split into training and validation sets  
 
 
 ## ⚙️ Methodology
 
-The system follows a standard computer vision pipeline:
-
 1. Data preprocessing  
-   - Image resizing  
-   - Normalization  
-   - Data augmentation  
+   - Pixel normalization  
+   - Binarization  
+   - Folder-based label assignment with `ImageDataGenerator`  
 
-2. Feature Extraction  
-   - Hand detection and tracking  
-   - Keypoint extraction (optional)  
+2. Model Development  
+   - **Initial approach:** MobileNetV2 as a frozen feature extractor + fully connected dense layers  
+   - **Final approach:** unfroze the last 50 layers of MobileNetV2 and fine-tuned on the ASL dataset  
+   - Also experimented with EfficientNetB4 and ResNet  
 
-3. Model Development  
-   - Convolutional Neural Networks (CNN)  
-   - Sequence models (for dynamic gestures, if applicable)  
+3. Training  
+   - **Initial:** Adam optimizer, 15 epochs  
+   - **Final:** up to 50 epochs with early stopping, `ReduceLROnPlateau`, and regularization  
 
-4. Translation  
-   - Mapping predicted gestures to text  
-
-Sign language recognition models often rely on CNNs or deep learning architectures to capture spatial and temporal patterns in gestures.  
+4. Inference Pipeline (Web App)  
+   - MediaPipe detects the hand and crops the region of interest  
+   - Resize to 224×224, convert to grayscale, normalize  
+   - Model predicts the letter → displayed as text and played as audio  
 
 
 ## 📊 Model Evaluation
 
-The model is evaluated using:
-
-- Accuracy  
-- Precision / Recall  
-- F1-score  
-
-Performance depends on dataset quality, gesture complexity, and environmental conditions.
+- Training and validation accuracy and loss tracked per epoch  
+- Initial and final approaches compared on validation accuracy  
 
 
 ## 🛠️ Tech Stack
 
 - Python  
-- OpenCV  
-- TensorFlow / PyTorch  
-- NumPy / Pandas  
-- Jupyter Notebook  
+- TensorFlow / Keras (MobileNetV2)  
+- MediaPipe  
+- Flask  
+- HTML / JavaScript (webcam capture, AJAX)  
+- gTTS (Google Text-to-Speech)  
+- Docker  
 
 
 ## 📁 Project Structure
@@ -88,48 +79,52 @@ Performance depends on dataset quality, gesture complexity, and environmental co
 ```
 Sign-Language-Translator/
 │
-├── data/                # Dataset
-├── notebooks/           # Experiments & modeling
-├── src/                 # Core implementation
-├── models/              # Trained models
-├── results/             # Outputs
+├── notebooks/           # Data preparation & model training
+├── app/                 # Flask backend & inference pipeline
+├── static/              # Frontend (HTML, JS)
+├── models/              # Trained model
+├── Dockerfile
 └── README.md
 ```
 
 
 ## 🚀 Results
 
-- Successfully recognized sign language gestures  
-- Converted gestures into readable text  
-- Demonstrated feasibility of real-time translation  
+| Approach | Train Accuracy | Validation Accuracy |
+|---|---|---|
+| Initial (frozen MobileNetV2, 15 epochs) | 63.1% | 60.4% |
+| **Final (fine-tuned last 50 layers, early stopping)** | **83.2%** | **84.1%** |
 
-Sign language translation systems have been shown to improve accessibility by enabling communication between deaf and hearing individuals.
+- Fine-tuning improved validation accuracy by **+23.7 pts** (60.4% → 84.1%)  
+- Built a working web app that turns webcam gestures into text and speech  
+- Deployed the full stack with Docker  
 
 
 ## 📌 Limitations
 
-- Limited vocabulary size  
-- Sensitivity to lighting and background conditions  
-- Difficulty handling continuous sign sequences  
-
-Sign language recognition remains challenging due to variability in gestures and lack of large standardized datasets.
+- Static alphabet letters only; words, sentences, and motion-based signs are not supported  
+- Evaluated on a validation split only, without a separate test set  
+- Real-time lag from webcam capture, hand cropping, and prediction  
+- Docker image compatibility issues between ARM64 and AMD64 architectures  
 
 
 ## 🔧 Future Work
 
-- Extend to full sentence-level translation  
-- Apply sequence models (LSTM, Transformers)  
-- Improve real-time performance  
-- Support multiple sign languages  
+- Evaluate on a held-out test set and with real webcam images  
+- Extend to word- and sentence-level translation using sequence models (LSTM, Transformers)  
+- Reduce inference latency for smoother real-time use  
+- Build multi-architecture Docker images  
 
 
 ## 👤 Author
 
-Park, Eunsoo \
-Dhakal, Sarthak \
-Tsegaselassie, Wengel A
+Park, Eunsoo  
+Dhakal, Sarthak  
+Tsegaselassie, Wengel A  
+
+**My role:** Data Preprocessing, Model fine-tuning
 
 
 ## ✔️ Summary
 
-> A computer vision-based system that translates sign language gestures into text to improve accessibility and communication
+> An end-to-end ASL alphabet translator that fine-tunes MobileNetV2 (validation accuracy 60.4% → 84.1%) and serves predictions as text and speech through a Dockerized Flask web app
